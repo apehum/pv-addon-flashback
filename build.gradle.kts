@@ -48,8 +48,8 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
     modImplementation("maven.modrinth:plasmo-voice:${property("deps.plasmo_voice")}")
-    compileOnly("su.plo.voice.api:client:2.1.6")
-    compileOnly("su.plo.voice.api:server:2.1.6")
+    compileOnly("su.plo.voice.api:client:2.1.7")
+    compileOnly("su.plo.voice.api:server:2.1.7")
 
     modImplementation("maven.modrinth:flashback:${property("deps.flashback")}")
     modImplementation("maven.modrinth:modmenu:${property("deps.modmenu")}")

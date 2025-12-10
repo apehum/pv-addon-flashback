@@ -14,6 +14,7 @@ import su.plo.voice.flashback.network.VoiceSetupPacket
 import su.plo.voice.flashback.util.extension.encodeToByteArrayPayload
 import su.plo.voice.proto.data.audio.capture.VoiceActivation
 import su.plo.voice.proto.data.audio.line.VoiceSourceLine
+import su.plo.voice.proto.data.config.PlayerIconConfig
 import su.plo.voice.proto.data.encryption.EncryptionInfo
 import su.plo.voice.proto.packets.Packet
 import su.plo.voice.proto.packets.tcp.clientbound.ConfigPacket
@@ -191,6 +192,10 @@ class VoicePacketRecorder(
                     )
                 }.toSet(),
             serverInfo.playerInfo.permissions,
+            PlayerIconConfig(
+                serverInfo.playerIconVisibility.toHashSet(),
+                serverInfo.playerIconOffset,
+            ),
         )
     }
 

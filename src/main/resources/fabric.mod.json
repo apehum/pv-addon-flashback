@@ -35,6 +35,6 @@
     "java": ">=21",
     "fabric-api": "*",
     "flashback": "*",
-    "plasmovoice": ">=2.1.4"
+    "plasmovoice": ">=2.1.7"
   }
 }
