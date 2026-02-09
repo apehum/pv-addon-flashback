@@ -10,10 +10,10 @@ import java.security.KeyPair
 
 class VoiceSetupPacket(
     val keyPair: KeyPair,
-    val connection: ConnectionPacket,
-    val config: ConfigPacket,
-    val playerList: PlayerListPacket,
-    val language: LanguagePacket,
+    val connection: ConnectionPacket? = null,
+    val config: ConfigPacket? = null,
+    val playerList: PlayerListPacket? = null,
+    val language: LanguagePacket? = null,
 ) : CustomPacketPayload {
     override fun type(): CustomPacketPayload.Type<out CustomPacketPayload> = type
 

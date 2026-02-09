@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.network.ConnectionProtocol
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import su.plo.voice.api.client.PlasmoVoiceClient
+import su.plo.voice.api.client.event.connection.ConnectionKeyPairGenerateEvent
 import su.plo.voice.api.client.event.connection.UdpClientPacketReceivedEvent
 import su.plo.voice.api.client.event.connection.UdpClientPacketSendEvent
 import su.plo.voice.api.event.EventSubscribe
@@ -39,42 +40,49 @@ class VoicePacketRecorder(
     init {
         FlashbackEvents.WRITE_INITIAL_SNAPSHOT.register {
             val keyPair = voiceClient.serverConnection.getOrNull()?.keyPair ?: return@register
-            val connectionPacket = createConnectionPacket() ?: return@register
-            val configPacket = createConfigPacket(keyPair) ?: return@register
-            val playerList = createPlayerListPacket() ?: return@register
-            val language = createLanguagePacket() ?: return@register
 
             Flashback.RECORDER.writePacketAsync(
                 ClientboundCustomPayloadPacket(
                     VoiceSetupPacket(
                         keyPair,
-                        connectionPacket,
-                        configPacket,
-                        playerList,
-                        language,
                     ),
                 ),
                 ConnectionProtocol.PLAY,
             )
 
+            val connectionPacket = createConnectionPacket() ?: return@register
+            recordVoicePacket(connectionPacket)
+
+            val configPacket = createConfigPacket(keyPair) ?: return@register
+            val playerList = createPlayerListPacket() ?: return@register
+            val language = createLanguagePacket() ?: return@register
+
+            listOf(configPacket, playerList, language).forEach { packet ->
+                recordVoicePacket(packet)
+            }
+
             currentSourcesPackets()?.forEach { sourceInfoPacket ->
-                Flashback.RECORDER.writePacketAsync(
-                    ClientboundCustomPayloadPacket(
-                        sourceInfoPacket.encodeToByteArrayPayload(),
-                    ),
-                    ConnectionProtocol.PLAY,
-                )
+                recordVoicePacket(sourceInfoPacket)
             }
 
             currentSelfSourcesPackets()?.forEach { sourceInfoPacket ->
-                Flashback.RECORDER.writePacketAsync(
-                    ClientboundCustomPayloadPacket(
-                        sourceInfoPacket.encodeToByteArrayPayload(),
-                    ),
-                    ConnectionProtocol.PLAY,
-                )
+                recordVoicePacket(sourceInfoPacket)
             }
         }
+    }
+
+    @EventSubscribe
+    fun onKeyPairGenerate(event: ConnectionKeyPairGenerateEvent) {
+        if (!shouldRecordPackets()) return
+
+        Flashback.RECORDER.writePacketAsync(
+            ClientboundCustomPayloadPacket(
+                VoiceSetupPacket(
+                    event.keyPair,
+                ),
+            ),
+            ConnectionProtocol.PLAY,
+        )
     }
 
     @EventSubscribe
@@ -207,5 +215,14 @@ class VoicePacketRecorder(
     private fun currentSelfSourcesPackets(): List<SelfSourceInfoPacket>? {
         if (voiceClient.serverInfo.isEmpty) return null
         return voiceClient.sourceManager.allSelfSourceInfos.map { SelfSourceInfoPacket(it.selfSourceInfo) }
+    }
+
+    private fun recordVoicePacket(packet: Packet<*>) {
+        Flashback.RECORDER.writePacketAsync(
+            ClientboundCustomPayloadPacket(
+                packet.encodeToByteArrayPayload(),
+            ),
+            ConnectionProtocol.PLAY,
+        )
     }
 }

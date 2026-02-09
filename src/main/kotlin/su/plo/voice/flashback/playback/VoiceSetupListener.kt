@@ -59,12 +59,13 @@ class VoiceSetupListener(
                 as? ClientPlayNetworking.PlayPayloadHandler<ByteArrayPayload>
                 ?: return
 
-        listOf(
-            voiceSetupPacket.connection.encodeToByteArrayPayload(),
-            voiceSetupPacket.config.encodeToByteArrayPayload(),
-            voiceSetupPacket.playerList.encodeToByteArrayPayload(),
-            voiceSetupPacket.language.encodeToByteArrayPayload(),
-        ).forEach { handler.receive(it, context) }
+        listOfNotNull(
+            voiceSetupPacket.connection,
+            voiceSetupPacket.config,
+            voiceSetupPacket.playerList,
+            voiceSetupPacket.language,
+        ).map { it.encodeToByteArrayPayload() }
+            .forEach { handler.receive(it, context) }
     }
 
     companion object {

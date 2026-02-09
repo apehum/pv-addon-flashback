@@ -25,10 +25,10 @@ class VoiceSetupPacketCodec : StreamCodec<RegistryFriendlyByteBuf, VoiceSetupPac
         val publicKeySpec = X509EncodedKeySpec(publicKey)
         val privateKeySpec = PKCS8EncodedKeySpec(privateKey)
 
-        val connection = buf.readPacket(ConnectionPacket())
-        val config = buf.readPacket(ConfigPacket())
-        val playerList = buf.readPacket(PlayerListPacket())
-        val language = buf.readPacket(LanguagePacket())
+        val connection = buf.readPacketOrNull(::ConnectionPacket)
+        val config = buf.readPacketOrNull(::ConfigPacket)
+        val playerList = buf.readPacketOrNull(::PlayerListPacket)
+        val language = buf.readPacketOrNull(::LanguagePacket)
 
         return VoiceSetupPacket(
             KeyPair(
@@ -57,19 +57,27 @@ class VoiceSetupPacketCodec : StreamCodec<RegistryFriendlyByteBuf, VoiceSetupPac
         buf.writeInt(privateKey.size)
         buf.writeBytes(privateKey)
 
-        buf.writePacket(voiceSetupPacket.connection)
-        buf.writePacket(voiceSetupPacket.config)
-        buf.writePacket(voiceSetupPacket.playerList)
-        buf.writePacket(voiceSetupPacket.language)
+        listOfNotNull(
+            voiceSetupPacket.connection,
+            voiceSetupPacket.config,
+            voiceSetupPacket.playerList,
+            voiceSetupPacket.language,
+        ).forEach { buf.writePacket(it) }
     }
 
-    private fun <T : Packet<*>> FriendlyByteBuf.readPacket(packet: T): T {
-        val packetBytes = ByteArray(readInt())
-        readBytes(packetBytes)
+    private fun <T : Packet<*>> FriendlyByteBuf.readPacketOrNull(packetBuilder: () -> T): T? {
+        if (readableBytes() <= 0) return null
 
-        packet.read(ByteStreams.newDataInput(packetBytes))
+        try {
+            val packetBytes = ByteArray(readInt())
+            readBytes(packetBytes)
 
-        return packet
+            val packet = packetBuilder()
+            packet.read(ByteStreams.newDataInput(packetBytes))
+            return packet
+        } catch (_: Throwable) {
+            return null
+        }
     }
 
     private fun FriendlyByteBuf.writePacket(packet: Packet<*>) {
