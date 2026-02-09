@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: Release type
+        required: true
+        default: release
+        type: choice
+        options:
+          - beta
+          - release
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: |
+          21
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v5
+
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Publish to Modrinth
+      uses: apehum/mc-publish@v1.2
+      with:
+        changelog-file: changelog.md
+
+        version-type: ${{ github.event.inputs.release-type }}
+
+        modrinth-id: mgqpALAH
+        modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+    - uses: actions/upload-artifact@v5
+      with:
+        name: pv-addon-flashback
+        path: |
+          build/libs/*.jar

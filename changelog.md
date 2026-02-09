@@ -1,0 +1,1 @@
+- Fixed voice not being recording when using "Automatically start".
