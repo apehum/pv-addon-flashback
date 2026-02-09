@@ -55,7 +55,7 @@ class VoiceReplayEvents(
         if (!Flashback.isInReplay() || event.isRender) return
 
         if (!isCameraRemotePlayer()) return
-        val player = Minecraft.getInstance().cameraEntity as RemotePlayer?
+        val player = Minecraft.getInstance().getCameraEntity() as RemotePlayer?
 
         val isActivated =
             voiceClient.sourceManager.allSelfSourceInfos

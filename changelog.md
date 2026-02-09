@@ -1,1 +1,2 @@
 - Fixed voice not being recording when using "Automatically start".
+- Fixed hud icon render not being rendered and cause spam in logs in 1.21.10+.
