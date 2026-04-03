@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import su.plo.voice.client.audio.source.BaseClientAudioSource;
+import su.plo.voice.flashback.CameraUtilKt;
 
 @Mixin(
         value = BaseClientAudioSource.class,
@@ -23,6 +24,6 @@ public class MixinBaseClientAudioSource {
         Camera audioCamera = editorState.getAudioCamera();
         if (audioCamera == null) return;
 
-        cir.setReturnValue(audioCamera.getPosition());
+        cir.setReturnValue(CameraUtilKt.position(audioCamera));
     }
 }

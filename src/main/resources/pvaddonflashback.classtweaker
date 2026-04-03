@@ -1,0 +1,5 @@
+classTweaker v1 official
+
+accessible field net/minecraft/client/sounds/SoundManager soundEngine Lnet/minecraft/client/sounds/SoundEngine;
+accessible field net/minecraft/client/sounds/SoundEngine library Lcom/mojang/blaze3d/audio/Library;
+accessible field com/mojang/blaze3d/audio/Library context J

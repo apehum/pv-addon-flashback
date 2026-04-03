@@ -28,11 +28,10 @@
   "mixins": [
     "pvaddonflashback.mixins.json"
   ],
-  "accessWidener": "pvaddonflashback.accesswidener",
+  "accessWidener": "${accessWidener}",
   "depends": {
     "fabricloader": ">=0.16.10",
-    "minecraft": ">=1.21.1",
-    "java": ">=21",
+    "minecraft": "${minecraftVersionDependency}",
     "fabric-api": "*",
     "flashback": "*",
     "plasmovoice": ">=2.1.7"
