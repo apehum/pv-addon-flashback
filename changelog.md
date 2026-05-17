@@ -1,2 +1,2 @@
-- Fixed voice not being recording when using "Automatically start".
-- Fixed hud icon render not being rendered and cause spam in logs in 1.21.10+.
+- Fixed voice setup being delayed by one tick on replay playback.
+- Fixed player and source state being incorrect when jumping between points in a replay.

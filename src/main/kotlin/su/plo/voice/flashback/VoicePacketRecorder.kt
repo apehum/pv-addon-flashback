@@ -4,6 +4,7 @@ import com.moulberry.flashback.Flashback
 import net.minecraft.client.Minecraft
 import net.minecraft.network.ConnectionProtocol
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
+import net.minecraft.network.protocol.game.ClientGamePacketListener
 import su.plo.voice.api.client.PlasmoVoiceClient
 import su.plo.voice.api.client.event.connection.ConnectionKeyPairGenerateEvent
 import su.plo.voice.api.client.event.connection.UdpClientPacketReceivedEvent
@@ -29,8 +30,10 @@ import su.plo.voice.proto.packets.udp.clientbound.SelfAudioInfoPacket
 import su.plo.voice.proto.packets.udp.clientbound.SourceAudioPacket
 import su.plo.voice.proto.packets.udp.serverbound.PlayerAudioPacket
 import java.security.KeyPair
+import java.util.function.Consumer
 import javax.crypto.Cipher
 import kotlin.jvm.optionals.getOrNull
+import net.minecraft.network.protocol.Packet as McPacket
 
 class VoicePacketRecorder(
     private val voiceClient: PlasmoVoiceClient,
@@ -38,37 +41,41 @@ class VoicePacketRecorder(
     private val minecraft by lazy { Minecraft.getInstance() }
 
     init {
-        FlashbackEvents.WRITE_INITIAL_SNAPSHOT.register {
+        FlashbackEvents.WRITE_SNAPSHOT.register { consumer ->
             val keyPair = voiceClient.serverConnection.getOrNull()?.keyPair ?: return@register
 
-            Flashback.RECORDER.writePacketAsync(
-                ClientboundCustomPayloadPacket(
-                    VoiceSetupPacket(
-                        keyPair,
-                    ),
-                ),
-                ConnectionProtocol.PLAY,
+            consumer.accept(
+                ClientboundCustomPayloadPacket(VoiceSetupPacket(keyPair)),
             )
 
             val connectionPacket = createConnectionPacket() ?: return@register
-            recordVoicePacket(connectionPacket)
+            recordSnapshotPacket(consumer, connectionPacket)
 
             val configPacket = createConfigPacket(keyPair) ?: return@register
             val playerList = createPlayerListPacket() ?: return@register
             val language = createLanguagePacket() ?: return@register
 
             listOf(configPacket, playerList, language).forEach { packet ->
-                recordVoicePacket(packet)
+                recordSnapshotPacket(consumer, packet)
             }
 
             currentSourcesPackets()?.forEach { sourceInfoPacket ->
-                recordVoicePacket(sourceInfoPacket)
+                recordSnapshotPacket(consumer, sourceInfoPacket)
             }
 
             currentSelfSourcesPackets()?.forEach { sourceInfoPacket ->
-                recordVoicePacket(sourceInfoPacket)
+                recordSnapshotPacket(consumer, sourceInfoPacket)
             }
         }
+    }
+
+    private fun recordSnapshotPacket(
+        consumer: Consumer<McPacket<in ClientGamePacketListener>>,
+        packet: Packet<*>,
+    ) {
+        consumer.accept(
+            ClientboundCustomPayloadPacket(packet.encodeToByteArrayPayload()),
+        )
     }
 
     @EventSubscribe
@@ -215,14 +222,5 @@ class VoicePacketRecorder(
     private fun currentSelfSourcesPackets(): List<SelfSourceInfoPacket>? {
         if (voiceClient.serverInfo.isEmpty) return null
         return voiceClient.sourceManager.allSelfSourceInfos.map { SelfSourceInfoPacket(it.selfSourceInfo) }
-    }
-
-    private fun recordVoicePacket(packet: Packet<*>) {
-        Flashback.RECORDER.writePacketAsync(
-            ClientboundCustomPayloadPacket(
-                packet.encodeToByteArrayPayload(),
-            ),
-            ConnectionProtocol.PLAY,
-        )
     }
 }
