@@ -1,2 +1,2 @@
-- Fixed voice setup being delayed by one tick on replay playback.
-- Fixed player and source state being incorrect when jumping between points in a replay.
+- Fixed no voice in replays when voice chat connected after the recording started, e.g. after switching servers on a proxy.
+- Fixed no voice in replays recorded after watching another replay.
