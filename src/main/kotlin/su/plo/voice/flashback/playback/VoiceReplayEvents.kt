@@ -14,6 +14,7 @@ import su.plo.voice.api.client.event.render.VoiceDistanceRenderEvent
 import su.plo.voice.api.client.event.socket.UdpClientClosedEvent
 import su.plo.voice.api.client.event.socket.UdpClientConnectEvent
 import su.plo.voice.api.client.time.SystemTimeSupplier
+import su.plo.voice.api.event.EventPriority
 import su.plo.voice.api.event.EventSubscribe
 import su.plo.voice.flashback.FlashbackVoiceAddon
 import su.plo.voice.flashback.isCameraRemotePlayer
@@ -23,8 +24,10 @@ class VoiceReplayEvents(
     private val addon: FlashbackVoiceAddon,
     private val voiceClient: PlasmoVoiceClient,
 ) {
-    @EventSubscribe
+    @EventSubscribe(priority = EventPriority.LOW)
     fun onKeyPairGenerate(event: ConnectionKeyPairGenerateEvent) {
+        if (!Flashback.isInReplay()) return
+
         VoiceSetupListener.currentKeyPair?.let {
             event.keyPair = it
         }

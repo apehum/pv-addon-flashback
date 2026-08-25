@@ -3,12 +3,14 @@ package su.plo.voice.flashback
 import com.moulberry.flashback.Flashback
 import net.minecraft.client.Minecraft
 import net.minecraft.network.ConnectionProtocol
+import net.minecraft.network.protocol.Packet as McPacket
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.network.protocol.game.ClientGamePacketListener
 import su.plo.voice.api.client.PlasmoVoiceClient
 import su.plo.voice.api.client.event.connection.ConnectionKeyPairGenerateEvent
 import su.plo.voice.api.client.event.connection.UdpClientPacketReceivedEvent
 import su.plo.voice.api.client.event.connection.UdpClientPacketSendEvent
+import su.plo.voice.api.event.EventPriority
 import su.plo.voice.api.event.EventSubscribe
 import su.plo.voice.flashback.event.FlashbackEvents
 import su.plo.voice.flashback.network.PacketUdpWrapper
@@ -33,7 +35,6 @@ import java.security.KeyPair
 import java.util.function.Consumer
 import javax.crypto.Cipher
 import kotlin.jvm.optionals.getOrNull
-import net.minecraft.network.protocol.Packet as McPacket
 
 class VoicePacketRecorder(
     private val voiceClient: PlasmoVoiceClient,
@@ -78,7 +79,7 @@ class VoicePacketRecorder(
         )
     }
 
-    @EventSubscribe
+    @EventSubscribe(priority = EventPriority.HIGHEST)
     fun onKeyPairGenerate(event: ConnectionKeyPairGenerateEvent) {
         if (!shouldRecordPackets()) return
 
