@@ -10,6 +10,7 @@ import su.plo.voice.flashback.network.VoiceSetupPacket
 import su.plo.voice.flashback.util.extension.encodeToByteArrayPayload
 import su.plo.voice.server.ModVoiceServer
 import java.security.KeyPair
+import kotlin.jvm.optionals.getOrNull
 
 class VoiceSetupListener(
     private val addon: FlashbackVoiceAddon,
@@ -49,6 +50,12 @@ class VoiceSetupListener(
 
         val connection = Minecraft.getInstance().connection ?: return
         currentKeyPair = voiceSetupPacket.keyPair
+
+        // sometimes ConnectionKeyPairGenerateEvent is invoked before VoiceSetupPacket,
+        // so we have to override it manually here
+        addon.voiceClient.serverConnection
+            .getOrNull()
+            ?.keyPair = voiceSetupPacket.keyPair
 
         // this is a hack, but it's necessary to save compat with existing replays
         // better way is to record packets separately
