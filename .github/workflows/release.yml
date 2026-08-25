@@ -37,20 +37,9 @@ jobs:
       run: ./gradlew build
 
     - name: Publish to Modrinth
-      uses: apehum/mc-publish@master
-      with:
-        changelog-file: changelog.md
-
-        version-type: ${{ github.event.inputs.release-type }}
-
-        split-releases: true
-
-        modrinth-id: mgqpALAH
-        modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-        modrinth-dependencies: |
-          plasmo-voice
-          fabric-api
-          flashback
+      run: ./gradlew publishMods -Prelease_type=${{ github.event.inputs.release-type }}
+      env:
+        MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
     - uses: actions/upload-artifact@v5
       with:

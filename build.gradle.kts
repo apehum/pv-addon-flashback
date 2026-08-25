@@ -2,6 +2,7 @@ import net.fabricmc.loom.LoomGradlePlugin
 import net.fabricmc.loom.LoomNoRemapGradlePlugin
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import net.fabricmc.loom.task.RemapJarTask
+import su.plo.voice.flashback.VersionResolver
 import java.net.URI
 
 plugins {
@@ -9,6 +10,7 @@ plugins {
     id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT" apply false
     id("com.gradleup.shadow") version "9.4.1"
     id("su.plo.crowdin.plugin") version "1.2.1"
+    id("me.modmuss50.mod-publish-plugin") version "2.2.0"
 }
 
 val minecraftVersion = stonecutter.current.version.substringBefore('-')
@@ -169,3 +171,56 @@ java.toolchain.languageVersion.set(
         },
     ),
 )
+
+publishMods {
+    file =
+        if (noMappings) {
+            tasks.shadowJar.flatMap { it.archiveFile }
+        } else {
+            tasks.named<RemapJarTask>("remapJar").flatMap { it.archiveFile }
+        }
+
+    changelog =
+        providers
+            .fileContents(rootProject.layout.projectDirectory.file("changelog.md"))
+            .asText
+
+    version = project.version.toString()
+    displayName = project.version.toString()
+
+    type =
+        when (val releaseType = providers.gradleProperty("release_type").getOrElse("beta")) {
+            "release" -> STABLE
+            "beta" -> BETA
+            "alpha" -> ALPHA
+            else -> throw GradleException("Unsupported release type: $releaseType")
+        }
+
+    modLoaders.add("fabric")
+
+    val modrinthToken =
+        providers
+            .gradleProperty("modrinth_token")
+            .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+
+    dryRun =
+        !modrinthToken.isPresent ||
+        providers.gradleProperty("dry_run").getOrElse("false").toBoolean()
+
+    val minecraftVersionDependency = property("minecraft_version_dependency") as String
+
+    modrinth {
+        projectId = "mgqpALAH"
+        accessToken = modrinthToken
+
+        minecraftVersions.addAll(
+            provider {
+                VersionResolver
+                    .getMinecraftVersionsInRange("release", minecraftVersionDependency)
+                    .map { it.id }
+            },
+        )
+
+        requires("plasmo-voice", "fabric-api", "flashback")
+    }
+}
