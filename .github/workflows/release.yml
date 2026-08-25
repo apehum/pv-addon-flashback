@@ -43,6 +43,8 @@ jobs:
 
         version-type: ${{ github.event.inputs.release-type }}
 
+        split-releases: true
+
         modrinth-id: mgqpALAH
         modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
