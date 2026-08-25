@@ -47,6 +47,10 @@ jobs:
 
         modrinth-id: mgqpALAH
         modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+        modrinth-dependencies: |
+          plasmo-voice
+          fabric-api
+          flashback
 
     - uses: actions/upload-artifact@v5
       with:
